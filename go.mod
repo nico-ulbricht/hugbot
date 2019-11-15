@@ -24,6 +24,7 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lib/pq v1.2.0
 	github.com/mattes/migrate v3.0.1+incompatible // indirect
+	github.com/nlopes/slack v0.6.0
 	github.com/pkg/errors v0.8.1
 	github.com/remyoudompheng/bigfft v0.0.0-20190728182440-6a916e37a237 // indirect
 	github.com/stretchr/testify v1.4.0
