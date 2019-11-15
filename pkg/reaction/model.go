@@ -1,5 +1,9 @@
 package reaction
 
+import (
+	"github.com/google/uuid"
+)
+
 type Reaction struct {
 	ID          uuid.UUID `db:"id"`
 	SenderID    uuid.UUID `db:"sender_id"`

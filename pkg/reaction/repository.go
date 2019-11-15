@@ -1,6 +1,10 @@
 package reaction
 
-import "context"
+import (
+	"context"
+
+	"github.com/google/uuid"
+)
 
 type Repository interface {
 	Insert(ctx context.Context, reaction *Reaction) (*Reaction, error)

@@ -1,6 +1,10 @@
 package event
 
-var ReactionCreatedEvent EventType = "reaction:created"
+import (
+	"github.com/google/uuid"
+)
+
+var ReactionCreatedEventType EventType = "reaction:created"
 
 type ReactionCreatedPayload struct {
 	RecipientID uuid.UUID `json:"recipientID"`
