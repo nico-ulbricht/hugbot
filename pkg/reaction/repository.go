@@ -27,6 +27,6 @@ func (rp *repository)	GetBySenderID(ctx context.Context, senderID uuid.UUID) ([]
 	panic("TODO")
 }
 
-func NewRepository() {
+func NewRepository() Repository {
 	return &repository{}
 }
