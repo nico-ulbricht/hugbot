@@ -2,7 +2,9 @@ package slack
 
 import (
 	"context"
+	"regexp"
 
+	"github.com/google/uuid"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/nlopes/slack"
 	"github.com/pkg/errors"
@@ -18,22 +20,26 @@ type Service interface {
 }
 
 type handleMessageInput struct {
-	Message  string
-	SenderID string
+	Message     string
+	ReferenceID string
+	SenderID    string
 }
 
 type handleReactionInput struct {
-	SenderID    string
 	RecipientID string
 	ReferenceID string
+	SenderID    string
 	Type        string
 }
 
 type service struct {
-	slackClient     *slack.Client
 	reactionService reaction.Service
+	slackClient     *slack.Client
 	userService     user.Service
 }
+
+var reactionRegexp = regexp.MustCompile(":\\w+:")
+var userRegexp = regexp.MustCompile("\\<@(.*?)\\>")
 
 func (svc *service) SendMessage(ctx context.Context, msg *Message) error {
 	usr, err := svc.userService.GetByID(ctx, msg.RecipientID)
@@ -51,7 +57,41 @@ func (svc *service) SendMessage(ctx context.Context, msg *Message) error {
 }
 
 func (svc *service) HandleMessage(ctx context.Context, input handleMessageInput) error {
-	panic("TODO")
+	sender, err := svc.userService.GetByExternalID(ctx, input.SenderID)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	amountsByReaction := map[string]int{}
+	reactions := reactionRegexp.FindAllString(input.Message, -1)
+	for _, aReaction := range reactions {
+		amountsByReaction[aReaction]++
+	}
+
+	recipientMatches := userRegexp.FindAllStringSubmatch(input.Message, -1)
+	recipientIDs := make([]uuid.UUID, len(recipientMatches))
+	for idx, aMatch := range recipientMatches {
+		externalID := aMatch[1]
+		recipient, err := svc.userService.GetByExternalID(ctx, externalID)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		recipientIDs[idx] = recipient.ID
+	}
+
+	for aReaction, reactionAmount := range amountsByReaction {
+		for _, aRecipientID := range recipientIDs {
+			_, err = svc.reactionService.Create(ctx, reaction.CreateInput{
+				RecipientID: aRecipientID,
+				ReferenceID: input.ReferenceID,
+				SenderID:    sender.ID,
+				Type:        aReaction,
+			})
+		}
+	}
+
+	return nil
 }
 
 func (svc *service) HandleReaction(ctx context.Context, input handleReactionInput) error {
@@ -65,7 +105,7 @@ func (svc *service) HandleReaction(ctx context.Context, input handleReactionInpu
 		return errors.WithStack(err)
 	}
 
-	_, err = svc.reactionService.Create(ctx, CreateInput{
+	_, err = svc.reactionService.Create(ctx, reaction.CreateInput{
 		RecipientID: recipient.ID,
 		ReferenceID: input.ReferenceID,
 		SenderID:    sender.ID,
@@ -80,12 +120,17 @@ type config struct {
 	Token string `envconfig:"SLACK_TOKEN"`
 }
 
-func NewService() Service {
+func NewService(
+	reactionService reaction.Service,
+	userService user.Service,
+) Service {
 	var c config
 	envconfig.MustProcess("", &c)
 
 	slackClient := slack.New(c.Token)
 	return &service{
-		slackClient: slackClient,
+		reactionService: reactionService,
+		slackClient:     slackClient,
+		userService:     userService,
 	}
 }
