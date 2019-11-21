@@ -25,6 +25,7 @@ type handleMessageInput struct {
 type handleReactionInput struct {
 	SenderID    string
 	RecipientID string
+	ReferenceID string
 	Type        string
 }
 
@@ -54,7 +55,25 @@ func (svc *service) HandleMessage(ctx context.Context, input handleMessageInput)
 }
 
 func (svc *service) HandleReaction(ctx context.Context, input handleReactionInput) error {
-	panic("TODO")
+	sender, err := svc.userService.GetByExternalID(ctx, input.SenderID)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	recipient, err := svc.userService.GetByExternalID(ctx, input.RecipientID)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	_, err = svc.reactionService.Create(ctx, CreateInput{
+		RecipientID: recipient.ID,
+		ReferenceID: input.ReferenceID,
+		SenderID:    sender.ID,
+		Amount:      1,
+		Type:        input.Type,
+	})
+
+	return errors.WithStack(err)
 }
 
 type config struct {

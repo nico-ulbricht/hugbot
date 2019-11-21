@@ -14,6 +14,7 @@ type Service interface {
 
 type CreateInput struct {
 	RecipientID uuid.UUID
+	ReferenceID string
 	SenderID    uuid.UUID
 	Amount      int
 	Type        string
