@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/nico-ulbricht/hugbot/pkg/db"
@@ -74,6 +75,10 @@ func (rp *repository) GetByID(ctx context.Context, userID uuid.UUID) (*User, err
 	defer func() { _ = stmt.Close() }()
 	var user User
 	err = stmt.GetContext(ctx, &user, userID)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+
 	return &user, errors.WithStack(err)
 }
 
@@ -100,6 +105,10 @@ func (rp *repository) GetByExternalID(ctx context.Context, externalID string) (*
 	defer func() { _ = stmt.Close() }()
 	var user User
 	err = stmt.GetContext(ctx, &user, externalID)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+
 	return &user, errors.WithStack(err)
 }
 

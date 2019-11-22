@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/pkg/errors"
 )
 
 type Service interface {
@@ -14,8 +15,8 @@ type Service interface {
 
 type CreateInput struct {
 	RecipientID uuid.UUID
-	ReferenceID string
 	SenderID    uuid.UUID
+	ReferenceID string
 	Amount      int
 	Type        string
 }
@@ -25,15 +26,33 @@ type service struct {
 }
 
 func (svc service) Create(ctx context.Context, input CreateInput) (*Reaction, error) {
-	panic("TODO")
+	existingReaction, err := svc.reactionRepository.GetByReferenceID(ctx, input.ReferenceID)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	if existingReaction != nil {
+		return existingReaction, nil
+	}
+
+	// TODO: validate type
+	reaction := newReaction(
+		input.RecipientID,
+		input.SenderID,
+		input.ReferenceID,
+		input.Amount,
+		input.Type,
+	)
+
+	return svc.reactionRepository.Insert(ctx, reaction)
 }
 
 func (svc service) GetByRecipientID(ctx context.Context, recipientID uuid.UUID) ([]*Reaction, error) {
-	panic("TODO")
+	return svc.reactionRepository.GetByRecipientID(ctx, recipientID)
 }
 
 func (svc service) GetBySenderID(ctx context.Context, senderID uuid.UUID) ([]*Reaction, error) {
-	panic("TODO")
+	return svc.reactionRepository.GetBySenderID(ctx, senderID)
 }
 
 func NewService(reactionRepository Repository) Service {
