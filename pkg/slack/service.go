@@ -72,6 +72,7 @@ func (svc *service) HandleMessage(ctx context.Context, input handleMessageInput)
 	recipientIDs := make([]uuid.UUID, len(recipientMatches))
 	for idx, aMatch := range recipientMatches {
 		externalID := aMatch[1]
+		// TODO: create user if not exists
 		recipient, err := svc.userService.GetByExternalID(ctx, externalID)
 		if err != nil {
 			return errors.WithStack(err)
@@ -101,6 +102,7 @@ func (svc *service) HandleReaction(ctx context.Context, input handleReactionInpu
 		return errors.WithStack(err)
 	}
 
+	// TODO: create user if not exists
 	recipient, err := svc.userService.GetByExternalID(ctx, input.RecipientID)
 	if err != nil {
 		return errors.WithStack(err)

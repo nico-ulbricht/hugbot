@@ -13,7 +13,11 @@ type ReactionCreatedPayload struct {
 	Type        string    `json:"type"`
 }
 
-type ReactionCreatedEvent struct {
-	Meta    EventMeta              `json:"meta"`
+type ReactionCreated struct {
+	Meta    Meta                   `json:"meta"`
 	Payload ReactionCreatedPayload `json:"payload"`
+}
+
+func (event *ReactionCreated) GetMeta() Meta {
+	return event.Meta
 }

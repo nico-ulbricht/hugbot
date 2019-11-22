@@ -2,14 +2,13 @@ package event
 
 import "time"
 
-type EventType string
+type Type string
 
-type Event struct {
-	Meta    EventMeta   `json:"meta"`
-	Payload interface{} `json:"payload"`
+type Event interface {
+	GetMeta() Meta
 }
 
-type EventMeta struct {
+type Meta struct {
 	Created time.Time `json:"createdAt"`
-	Type    EventType `json:"eventType"`
+	Type    Type      `json:"type"`
 }
