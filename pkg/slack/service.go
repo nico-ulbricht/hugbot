@@ -86,6 +86,7 @@ func (svc *service) HandleMessage(ctx context.Context, input handleMessageInput)
 				RecipientID: aRecipientID,
 				ReferenceID: input.ReferenceID,
 				SenderID:    sender.ID,
+				Amount:      reactionAmount,
 				Type:        aReaction,
 			})
 		}

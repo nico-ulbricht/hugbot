@@ -24,15 +24,15 @@ type service struct {
 	reactionRepository Repository
 }
 
-func (svc service)	Create(ctx context.Context, input CreateInput) (*Reaction, error) {
+func (svc service) Create(ctx context.Context, input CreateInput) (*Reaction, error) {
 	panic("TODO")
 }
 
-func (svc service)	GetByRecipientID(ctx context.Context, recipientID uuid.UUID) ([]*Reaction, error) {
+func (svc service) GetByRecipientID(ctx context.Context, recipientID uuid.UUID) ([]*Reaction, error) {
 	panic("TODO")
 }
 
-func (svc service)	GetBySenderID(ctx context.Context, senderID uuid.UUID) ([]*Reaction, error) {
+func (svc service) GetBySenderID(ctx context.Context, senderID uuid.UUID) ([]*Reaction, error) {
 	panic("TODO")
 }
 
