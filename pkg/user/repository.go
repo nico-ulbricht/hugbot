@@ -29,7 +29,6 @@ func (rp *repository) Insert(ctx context.Context, user *User) (*User, error) {
 		insert into users (
 			id,
 			external_id,
-			name,
 			created_at,
 			updated_at
 		) values ($1, $2, $3, $4, $5)
@@ -44,7 +43,6 @@ func (rp *repository) Insert(ctx context.Context, user *User) (*User, error) {
 		ctx,
 		user.ID,
 		user.ExternalID,
-		user.Name,
 		now,
 		now,
 	)
@@ -61,10 +59,7 @@ func (rp *repository) GetByID(ctx context.Context, userID uuid.UUID) (*User, err
 	stmt, err := tx.PreparexContext(ctx, `
 		select
 			id,
-			external_id,
-			name,
-			created_at,
-			updated_at
+			external_id
 		from users
 		where id = $1
 	`)
@@ -91,10 +86,7 @@ func (rp *repository) GetByExternalID(ctx context.Context, externalID string) (*
 	stmt, err := tx.PreparexContext(ctx, `
 		select
 			id,
-			external_id,
-			name,
-			created_at,
-			updated_at
+			external_id
 		from users
 		where external_id = $1
 	`)

@@ -7,5 +7,11 @@ import (
 type User struct {
 	ID         uuid.UUID `db:"id"`
 	ExternalID string    `db:"external_id"`
-	Name       string    `db:"name"`
+}
+
+func newUser(externalID string) *User {
+	return &User{
+		ID:         uuid.New(),
+		ExternalID: externalID,
+	}
 }

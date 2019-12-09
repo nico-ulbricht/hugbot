@@ -57,7 +57,7 @@ func (svc *service) SendMessage(ctx context.Context, msg *Message) error {
 }
 
 func (svc *service) HandleMessage(ctx context.Context, input handleMessageInput) error {
-	sender, err := svc.userService.GetByExternalID(ctx, input.SenderID)
+	sender, err := svc.userService.Upsert(ctx, user.UpsertInput{ExternalID: input.SenderID})
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -71,9 +71,8 @@ func (svc *service) HandleMessage(ctx context.Context, input handleMessageInput)
 	recipientMatches := userRegexp.FindAllStringSubmatch(input.Message, -1)
 	recipientIDs := make([]uuid.UUID, len(recipientMatches))
 	for idx, aMatch := range recipientMatches {
-		externalID := aMatch[1]
-		// TODO: create user if not exists
-		recipient, err := svc.userService.GetByExternalID(ctx, externalID)
+		recipientID := aMatch[1]
+		recipient, err := svc.userService.Upsert(ctx, user.UpsertInput{ExternalID: recipientID})
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -97,13 +96,12 @@ func (svc *service) HandleMessage(ctx context.Context, input handleMessageInput)
 }
 
 func (svc *service) HandleReaction(ctx context.Context, input handleReactionInput) error {
-	sender, err := svc.userService.GetByExternalID(ctx, input.SenderID)
+	sender, err := svc.userService.Upsert(ctx, user.UpsertInput{ExternalID: input.SenderID})
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
-	// TODO: create user if not exists
-	recipient, err := svc.userService.GetByExternalID(ctx, input.RecipientID)
+	recipient, err := svc.userService.Upsert(ctx, user.UpsertInput{ExternalID: input.RecipientID})
 	if err != nil {
 		return errors.WithStack(err)
 	}
