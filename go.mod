@@ -27,6 +27,7 @@ require (
 	github.com/nlopes/slack v0.6.0
 	github.com/pkg/errors v0.8.1
 	github.com/remyoudompheng/bigfft v0.0.0-20190728182440-6a916e37a237 // indirect
+	github.com/rs/zerolog v1.17.2
 	github.com/stretchr/testify v1.4.0
 	golang.org/x/sys v0.0.0-20191113165036-4c7a9d0fe056 // indirect
 	google.golang.org/appengine v1.6.5 // indirect
