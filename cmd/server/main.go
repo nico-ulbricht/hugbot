@@ -8,6 +8,8 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/nico-ulbricht/hugbot/pkg/db"
+	"github.com/nico-ulbricht/hugbot/pkg/event"
+	"github.com/nico-ulbricht/hugbot/pkg/event/channel"
 	"github.com/nico-ulbricht/hugbot/pkg/reaction"
 	"github.com/nico-ulbricht/hugbot/pkg/slack"
 	"github.com/nico-ulbricht/hugbot/pkg/user"
@@ -23,9 +25,11 @@ func main() {
 	psql := db.New()
 	db.MustMigrate(psql, "file://migrations")
 
+	reactionChannel := make(chan event.Event)
+	reactionPublisher := channel.NewPublisher(reactionChannel)
 	reactionLogger := logger.With().Str("component", "reaction").Logger()
 	reactionRepository := reaction.NewRepository()
-	reactionService := reaction.NewService(reactionRepository)
+	reactionService := reaction.NewService(reactionPublisher, reactionRepository)
 	reactionService = reaction.NewLoggingService(reactionService, reactionLogger)
 
 	userLogger := logger.With().Str("component", "user").Logger()

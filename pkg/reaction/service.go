@@ -3,6 +3,8 @@ package reaction
 import (
 	"context"
 
+	"github.com/nico-ulbricht/hugbot/pkg/event"
+
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
@@ -22,6 +24,7 @@ type CreateInput struct {
 }
 
 type service struct {
+	reactionPublisher  event.Publisher
 	reactionRepository Repository
 }
 
@@ -55,8 +58,12 @@ func (svc service) GetBySenderID(ctx context.Context, senderID uuid.UUID) ([]*Re
 	return svc.reactionRepository.GetBySenderID(ctx, senderID)
 }
 
-func NewService(reactionRepository Repository) Service {
+func NewService(
+	reactionPublisher event.Publisher,
+	reactionRepository Repository,
+) Service {
 	return &service{
+		reactionPublisher:  reactionPublisher,
 		reactionRepository: reactionRepository,
 	}
 }

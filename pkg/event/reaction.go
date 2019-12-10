@@ -4,7 +4,7 @@ import (
 	"github.com/google/uuid"
 )
 
-var ReactionCreatedEventType EventType = "reaction:created"
+var ReactionCreatedEventType Type = "reaction:created"
 
 type ReactionCreatedPayload struct {
 	RecipientID uuid.UUID `json:"recipientID"`
