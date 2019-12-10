@@ -37,7 +37,9 @@ func main() {
 	userService := user.NewService(userRepository)
 	userService = user.NewLoggingService(userService, userLogger)
 
+	slackSubscriber := channel.NewSubscriber(reactionChannel)
 	slackLogger := logger.With().Str("component", "slack").Logger()
 	slackService := slack.NewService(reactionService, userService)
 	slackService = slack.NewLoggingService(slackService, slackLogger)
+	slack.SubscribeReactionEventHandlers(slackService, slackSubscriber)
 }

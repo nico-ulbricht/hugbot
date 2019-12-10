@@ -28,7 +28,7 @@ func (sub *subscriber) Consume(ctx context.Context, errChan chan error) {
 	}
 }
 
-func (sub *subscriber) Subscribe(ctx context.Context, eventType event.Type, handleFunc event.HandleFunc) {
+func (sub *subscriber) Subscribe(eventType event.Type, handleFunc event.HandleFunc) {
 	sub.handlerRegistry[eventType] = handleFunc
 }
 
