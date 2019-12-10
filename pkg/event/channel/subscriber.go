@@ -13,7 +13,7 @@ type subscriber struct {
 	handlerRegistry map[event.Type]event.HandleFunc
 }
 
-func (sub *subscriber) Consume(ctx context.Context, errChan chan error) {
+func (sub *subscriber) Consume(errChan chan error) {
 	for {
 		event := <-sub.eventChannel
 		handleFunc := sub.handlerRegistry[event.GetMeta().Type]
@@ -21,6 +21,7 @@ func (sub *subscriber) Consume(ctx context.Context, errChan chan error) {
 			continue
 		}
 
+		ctx := context.Background()
 		err := handleFunc(ctx, event)
 		if err != nil {
 			errChan <- errors.WithStack(err)
