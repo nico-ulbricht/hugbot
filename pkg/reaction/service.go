@@ -29,7 +29,7 @@ type service struct {
 }
 
 func (svc service) Create(ctx context.Context, input CreateInput) (*Reaction, error) {
-	existingReaction, err := svc.reactionRepository.GetByReferenceID(ctx, input.ReferenceID)
+	existingReaction, err := svc.reactionRepository.GetByReferenceIDAndType(ctx, input.ReferenceID, input.Type)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}

@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
@@ -24,10 +25,11 @@ type service struct {
 func (svc *service) Upsert(ctx context.Context, input UpsertInput) (*User, error) {
 	existingUser, err := svc.userRepository.GetByExternalID(ctx, input.ExternalID)
 	if err != nil {
+		fmt.Println(err)
 		return nil, errors.WithStack(err)
 	}
 
-	if existingUser == nil {
+	if existingUser != nil {
 		return existingUser, nil
 	}
 

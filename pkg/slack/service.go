@@ -38,7 +38,7 @@ type service struct {
 	userService     user.Service
 }
 
-var reactionRegexp = regexp.MustCompile(":\\w+:")
+var reactionRegexp = regexp.MustCompile(":(\\w+):")
 var userRegexp = regexp.MustCompile("\\<@(.*?)\\>")
 
 func (svc *service) SendMessage(ctx context.Context, msg *Message) error {
@@ -63,9 +63,9 @@ func (svc *service) HandleMessage(ctx context.Context, input handleMessageInput)
 	}
 
 	amountsByReaction := map[string]int{}
-	reactions := reactionRegexp.FindAllString(input.Message, -1)
-	for _, aReaction := range reactions {
-		amountsByReaction[aReaction]++
+	reactionMatches := reactionRegexp.FindAllStringSubmatch(input.Message, -1)
+	for _, aReactionMatch := range reactionMatches {
+		amountsByReaction[aReactionMatch[1]]++
 	}
 
 	recipientMatches := userRegexp.FindAllStringSubmatch(input.Message, -1)

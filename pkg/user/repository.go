@@ -5,9 +5,8 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/nico-ulbricht/hugbot/pkg/db"
-
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
 
@@ -17,21 +16,18 @@ type Repository interface {
 	GetByExternalID(ctx context.Context, externalID string) (*User, error)
 }
 
-type repository struct{}
+type repository struct {
+	psql *sqlx.DB
+}
 
 func (rp *repository) Insert(ctx context.Context, user *User) (*User, error) {
-	tx, err := db.TxFromContext(ctx)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	stmt, err := tx.PreparexContext(ctx, `
+	stmt, err := rp.psql.PreparexContext(ctx, `
 		insert into users (
 			id,
 			external_id,
 			created_at,
 			updated_at
-		) values ($1, $2, $3, $4, $5)
+		) values ($1, $2, $3, $4)
 	`)
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -51,12 +47,7 @@ func (rp *repository) Insert(ctx context.Context, user *User) (*User, error) {
 }
 
 func (rp *repository) GetByID(ctx context.Context, userID uuid.UUID) (*User, error) {
-	tx, err := db.TxFromContext(ctx)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	stmt, err := tx.PreparexContext(ctx, `
+	stmt, err := rp.psql.PreparexContext(ctx, `
 		select
 			id,
 			external_id
@@ -78,12 +69,7 @@ func (rp *repository) GetByID(ctx context.Context, userID uuid.UUID) (*User, err
 }
 
 func (rp *repository) GetByExternalID(ctx context.Context, externalID string) (*User, error) {
-	tx, err := db.TxFromContext(ctx)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	stmt, err := tx.PreparexContext(ctx, `
+	stmt, err := rp.psql.PreparexContext(ctx, `
 		select
 			id,
 			external_id
@@ -104,6 +90,6 @@ func (rp *repository) GetByExternalID(ctx context.Context, externalID string) (*
 	return &user, errors.WithStack(err)
 }
 
-func NewRepository() Repository {
-	return &repository{}
+func NewRepository(psql *sqlx.DB) Repository {
+	return &repository{psql: psql}
 }

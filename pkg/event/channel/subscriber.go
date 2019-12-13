@@ -35,6 +35,7 @@ func (sub *subscriber) Subscribe(eventType event.Type, handleFunc event.HandleFu
 
 func NewSubscriber(eventChannel chan event.Event) event.Subscriber {
 	return &subscriber{
-		eventChannel: eventChannel,
+		eventChannel:    eventChannel,
+		handlerRegistry: map[event.Type]event.HandleFunc{},
 	}
 }

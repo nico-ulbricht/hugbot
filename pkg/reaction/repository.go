@@ -6,27 +6,23 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
-
-	"github.com/nico-ulbricht/hugbot/pkg/db"
 )
 
 type Repository interface {
 	Insert(ctx context.Context, reaction *Reaction) (*Reaction, error)
 	GetByRecipientID(ctx context.Context, recipientID uuid.UUID) ([]*Reaction, error)
-	GetByReferenceID(ctx context.Context, referenceID string) (*Reaction, error)
+	GetByReferenceIDAndType(ctx context.Context, referenceID, reactionType string) (*Reaction, error)
 	GetBySenderID(ctx context.Context, senderID uuid.UUID) ([]*Reaction, error)
 }
 
-type repository struct{}
+type repository struct {
+	psql *sqlx.DB
+}
 
 func (rp *repository) Insert(ctx context.Context, reaction *Reaction) (*Reaction, error) {
-	tx, err := db.TxFromContext(ctx)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	stmt, err := tx.PreparexContext(ctx, `
+	stmt, err := rp.psql.PreparexContext(ctx, `
 		insert into reactions (
 			id,
 			recipient_id,
@@ -60,19 +56,14 @@ func (rp *repository) Insert(ctx context.Context, reaction *Reaction) (*Reaction
 }
 
 func (rp *repository) GetByRecipientID(ctx context.Context, recipientID uuid.UUID) ([]*Reaction, error) {
-	tx, err := db.TxFromContext(ctx)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	stmt, err := tx.PreparexContext(ctx, `
+	stmt, err := rp.psql.PreparexContext(ctx, `
 		select
 			id,
 			recipient_id,
 			sender_id,
 			reference_id,
 			amount,
-			type,
+			type
 		from reactions
 		where recipient_id = $1
 	`)
@@ -86,22 +77,18 @@ func (rp *repository) GetByRecipientID(ctx context.Context, recipientID uuid.UUI
 	return reactions, errors.WithStack(err)
 }
 
-func (rp *repository) GetByReferenceID(ctx context.Context, referenceID string) (*Reaction, error) {
-	tx, err := db.TxFromContext(ctx)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	stmt, err := tx.PreparexContext(ctx, `
+func (rp *repository) GetByReferenceIDAndType(ctx context.Context, referenceID, eventType string) (*Reaction, error) {
+	stmt, err := rp.psql.PreparexContext(ctx, `
 		select
 			id,
 			recipient_id,
 			sender_id,
 			reference_id,
 			amount,
-			type,
+			type
 		from reactions
 		where reference_id = $1
+		and type = $2
 	`)
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -109,7 +96,7 @@ func (rp *repository) GetByReferenceID(ctx context.Context, referenceID string) 
 
 	defer func() { _ = stmt.Close() }()
 	var reaction Reaction
-	err = stmt.GetContext(ctx, &reaction, referenceID)
+	err = stmt.GetContext(ctx, &reaction, referenceID, eventType)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -118,19 +105,14 @@ func (rp *repository) GetByReferenceID(ctx context.Context, referenceID string) 
 }
 
 func (rp *repository) GetBySenderID(ctx context.Context, senderID uuid.UUID) ([]*Reaction, error) {
-	tx, err := db.TxFromContext(ctx)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-
-	stmt, err := tx.PreparexContext(ctx, `
+	stmt, err := rp.psql.PreparexContext(ctx, `
 		select
 			id,
 			recipient_id,
 			sender_id,
 			reference_id,
 			amount,
-			type,
+			type
 		from reactions
 		where sender_id = $1
 	`)
@@ -144,6 +126,6 @@ func (rp *repository) GetBySenderID(ctx context.Context, senderID uuid.UUID) ([]
 	return reactions, errors.WithStack(err)
 }
 
-func NewRepository() Repository {
-	return &repository{}
+func NewRepository(psql *sqlx.DB) Repository {
+	return &repository{psql: psql}
 }
