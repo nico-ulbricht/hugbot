@@ -118,7 +118,7 @@ func (svc *service) HandleReaction(ctx context.Context, input handleReactionInpu
 }
 
 type config struct {
-	Token string `envconfig:"SLACK_TOKEN"`
+	Token string `envconfig:"SLACK_TOKEN" required:"true"`
 }
 
 func NewService(

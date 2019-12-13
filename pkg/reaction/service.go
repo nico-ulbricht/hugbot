@@ -6,6 +6,7 @@ import (
 	"github.com/nico-ulbricht/hugbot/pkg/event"
 
 	"github.com/google/uuid"
+	"github.com/kelseyhightower/envconfig"
 	"github.com/pkg/errors"
 )
 
@@ -24,6 +25,7 @@ type CreateInput struct {
 }
 
 type service struct {
+	config             configuration
 	reactionPublisher  event.Publisher
 	reactionRepository Repository
 }
@@ -38,7 +40,18 @@ func (svc service) Create(ctx context.Context, input CreateInput) (*Reaction, er
 		return existingReaction, nil
 	}
 
-	// TODO: validate type
+	var isSupported bool
+	for _, aSupportedType := range svc.config.SupportedTypes {
+		if aSupportedType == input.Type {
+			isSupported = true
+			break
+		}
+	}
+
+	if isSupported == false {
+		return nil, nil
+	}
+
 	reaction := newReaction(
 		input.RecipientID,
 		input.SenderID,
@@ -58,11 +71,19 @@ func (svc service) GetBySenderID(ctx context.Context, senderID uuid.UUID) ([]*Re
 	return svc.reactionRepository.GetBySenderID(ctx, senderID)
 }
 
+type configuration struct {
+	SupportedTypes []string `envconfig:"REACTION_SUPPORTED_TYPES"`
+}
+
 func NewService(
 	reactionPublisher event.Publisher,
 	reactionRepository Repository,
 ) Service {
+	var config configuration
+	envconfig.MustProcess("", &config)
+
 	return &service{
+		config:             config,
 		reactionPublisher:  reactionPublisher,
 		reactionRepository: reactionRepository,
 	}
