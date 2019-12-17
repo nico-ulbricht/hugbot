@@ -1,0 +1,9 @@
+apiVersion: v1
+name: hugbot
+version: 0.1
+appVersion: 0.1
+description: Chart for running an independant instance of Hugbot
+keywords:
+  - hugbot
+  - slack
+  - culture

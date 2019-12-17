@@ -1,0 +1,22 @@
+image:
+  registry: docker.io
+  repository: nico-ulbricht/hugbot
+  tag: latest
+  pullPolicy: IfNotPresent
+
+postgresql:
+  enabled: true
+  persistence:
+    enabled: true
+    size: 1Gi
+
+  postgresqlDatabase: hugbot
+  postgresqlPassword: postgres
+  postgresqlUsername: postgres
+
+service:
+  type: ClusterIP
+  port: 8080
+
+slackToken: XXXX
+supportedReactions: hugging_face
