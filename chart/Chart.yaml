@@ -2,7 +2,7 @@ apiVersion: v1
 name: hugbot
 version: 0.1
 appVersion: 0.1
-description: Chart for running an independant instance of Hugbot
+description: Chart for running Hugbot on Kubernetes
 keywords:
   - hugbot
   - slack
