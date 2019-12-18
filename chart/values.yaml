@@ -1,0 +1,45 @@
+env:
+  SLACK_TOKEN: "xxx"
+  PORT: "8080"
+  PSQL_DB: "hugbot"
+  PSQL_HOST: "postgres"
+  PSQL_PASS: "postgres"
+  PSQL_PORT: "5432"
+  PSQL_SSL: "false"
+  PSQL_USER: "postgres"
+  REACTION_SUPPORTED_TYPES: "hugging_face"
+
+image:
+  registry: "docker.io"
+  repository: "nicoulbricht/hugbot"
+  tag: "latest"
+  pullPolicy: "IfNotPresent"
+
+ingress:
+  enabled: true
+
+postgresql:
+  enabled: true
+  fullnameOverride: "postgres"
+  persistence:
+    enabled: true
+    size: 1Gi
+
+  postgresqlDatabase: "hugbot"
+  postgresqlPassword: "postgres"
+  postgresqlUsername: "postgres"
+
+replicaCount: 1
+resources:
+  resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+service:
+  type: ClusterIP
+  externalPort: 80
+  internalPort: 8080
