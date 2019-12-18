@@ -12,8 +12,8 @@ import (
 
 type Repository interface {
 	Insert(ctx context.Context, reaction *Reaction) (*Reaction, error)
+	FindOne(ctx context.Context, input FindOneInput) (*Reaction, error)
 	GetByRecipientID(ctx context.Context, recipientID uuid.UUID) ([]*Reaction, error)
-	GetByReferenceIDAndType(ctx context.Context, referenceID, reactionType string) (*Reaction, error)
 	GetBySenderID(ctx context.Context, senderID uuid.UUID) ([]*Reaction, error)
 }
 
@@ -77,7 +77,13 @@ func (rp *repository) GetByRecipientID(ctx context.Context, recipientID uuid.UUI
 	return reactions, errors.WithStack(err)
 }
 
-func (rp *repository) GetByReferenceIDAndType(ctx context.Context, referenceID, eventType string) (*Reaction, error) {
+type FindOneInput struct {
+	ReferenceID string
+	SenderID    uuid.UUID
+	Type        string
+}
+
+func (rp *repository) FindOne(ctx context.Context, input FindOneInput) (*Reaction, error) {
 	stmt, err := rp.psql.PreparexContext(ctx, `
 		select
 			id,
@@ -88,7 +94,8 @@ func (rp *repository) GetByReferenceIDAndType(ctx context.Context, referenceID, 
 			type
 		from reactions
 		where reference_id = $1
-		and type = $2
+		and sender_id = $2
+		and type = $3
 	`)
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -96,7 +103,7 @@ func (rp *repository) GetByReferenceIDAndType(ctx context.Context, referenceID, 
 
 	defer func() { _ = stmt.Close() }()
 	var reaction Reaction
-	err = stmt.GetContext(ctx, &reaction, referenceID, eventType)
+	err = stmt.GetContext(ctx, &reaction, input.ReferenceID, input.SenderID, input.Type)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
