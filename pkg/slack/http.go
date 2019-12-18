@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/nlopes/slack"
 	"github.com/nlopes/slack/slackevents"
 	"github.com/rs/zerolog"
 )
@@ -46,32 +47,24 @@ func newEventHandler(svc Service, logger zerolog.Logger) func(http.ResponseWrite
 			w.Header().Set("Content-Type", "text")
 			w.Write([]byte(challengeReq.Challenge))
 
-		case string(messageEventType):
-			var messageEvent messageEvent
-			err := json.Unmarshal([]byte(body), &messageEvent)
-			if err != nil {
-				logger.Warn().Err(err).Msg("failed unmarshaling event")
-				w.WriteHeader(http.StatusBadRequest)
-			}
-			go svc.HandleMessage(ctx, handleMessageInput{
-				Message:     messageEvent.Text,
-				ReferenceID: messageEvent.ID,
-				SenderID:    messageEvent.SenderID,
-			})
+		case slackevents.CallbackEvent:
+			innerEvent := event.InnerEvent
+			switch eventData := innerEvent.Data.(type) {
+			case *slackevents.MessageEvent:
+				go svc.HandleMessage(ctx, handleMessageInput{
+					Message:     eventData.Text,
+					ReferenceID: eventData.TimeStamp,
+					SenderID:    eventData.User,
+				})
 
-		case string(reactionAddedEventType):
-			var reactionAddedEvent reactionAddedEvent
-			err := json.Unmarshal([]byte(body), &reactionAddedEvent)
-			if err != nil {
-				logger.Warn().Err(err).Msg("failed unmarshaling event")
-				w.WriteHeader(http.StatusBadRequest)
+			case *slack.ReactionAddedEvent:
+				go svc.HandleReaction(ctx, handleReactionInput{
+					RecipientID: eventData.ItemUser,
+					ReferenceID: eventData.Item.Timestamp,
+					SenderID:    eventData.User,
+					Type:        eventData.Reaction,
+				})
 			}
-			go svc.HandleReaction(ctx, handleReactionInput{
-				RecipientID: reactionAddedEvent.RecipientID,
-				ReferenceID: reactionAddedEvent.Item.ID,
-				SenderID:    reactionAddedEvent.SenderID,
-				Type:        reactionAddedEvent.Reaction,
-			})
 		}
 	}
 }
