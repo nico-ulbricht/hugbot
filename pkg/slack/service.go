@@ -65,7 +65,13 @@ func (svc *service) HandleReactionCreated(ctx context.Context, input handleReact
 		return errors.WithStack(err)
 	}
 
-	msg := fmt.Sprintf("Received %dx :%s: from <@%s>! :hugging_face: :hugging_face:", input.Amount, input.Type, sender.ExternalID)
+	var msg string
+	if input.Amount == 1 {
+		msg = fmt.Sprintf("Received *a :%s: from <@%s>*! :hugging_face: :hugging_face:", input.Type, sender.ExternalID)
+	} else {
+		msg = fmt.Sprintf("Received *%d :%s:s from <@%s>*! :hugging_face: :hugging_face:", input.Amount, input.Type, sender.ExternalID)
+	}
+
 	_, _, err = svc.slackClient.PostMessage(channelID, slack.MsgOptionText(msg, false))
 	return errors.WithStack(err)
 }
