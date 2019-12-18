@@ -12,12 +12,13 @@ type loggingService struct {
 	next   Service
 }
 
-func (svc *loggingService) SendMessage(ctx context.Context, msg *Message) (err error) {
+func (svc *loggingService) HandleReactionCreated(ctx context.Context, input handleReactionCreatedInput) (err error) {
 	defer func(begin time.Time) {
 		methodLogger := svc.logger.
 			With().
-			Str("method", "send_message").
-			Str("recipient_id", msg.RecipientID.String()).
+			Str("method", "handle_reaction_created").
+			Str("recipient_id", input.RecipientID.String()).
+			Str("sender_id", input.SenderID.String()).
 			Dur("duration", time.Since(begin)).
 			Logger()
 
@@ -27,7 +28,7 @@ func (svc *loggingService) SendMessage(ctx context.Context, msg *Message) (err e
 			methodLogger.Debug().Send()
 		}
 	}(time.Now())
-	return svc.next.SendMessage(ctx, msg)
+	return svc.next.HandleReactionCreated(ctx, input)
 }
 
 func (svc *loggingService) HandleMessage(ctx context.Context, input handleMessageInput) (err error) {

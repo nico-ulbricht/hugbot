@@ -7,4 +7,4 @@ type Subscriber interface {
 	Subscribe(eventType Type, handleFunc HandleFunc)
 }
 
-type HandleFunc func(ctx context.Context, event Event) error
+type HandleFunc func(ctx context.Context, event interface{}) error

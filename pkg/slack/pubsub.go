@@ -15,7 +15,13 @@ func SubscribeReactionEventHandlers(
 }
 
 func newReactionCreatedHandleFunc(svc Service) event.HandleFunc {
-	return func(ctx context.Context, event event.Event) error {
-		return nil
+	return func(ctx context.Context, req interface{}) error {
+		reactionCreatedEvent := req.(event.ReactionCreated)
+		return svc.HandleReactionCreated(ctx, handleReactionCreatedInput{
+			Amount:      reactionCreatedEvent.Payload.Amount,
+			RecipientID: reactionCreatedEvent.Payload.RecipientID,
+			SenderID:    reactionCreatedEvent.Payload.SenderID,
+			Type:        reactionCreatedEvent.Payload.Type,
+		})
 	}
 }

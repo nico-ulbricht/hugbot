@@ -7,9 +7,9 @@ import (
 var ReactionCreatedType Type = "reaction:created"
 
 type ReactionCreatedPayload struct {
+	Amount      int       `json:"amount"`
 	RecipientID uuid.UUID `json:"recipientID"`
 	SenderID    uuid.UUID `json:"senderID"`
-	Amount      int       `json:"amount"`
 	Type        string    `json:"type"`
 }
 
@@ -18,6 +18,6 @@ type ReactionCreated struct {
 	Payload ReactionCreatedPayload `json:"payload"`
 }
 
-func (event *ReactionCreated) GetMeta() Meta {
+func (event ReactionCreated) GetMeta() Meta {
 	return event.Meta
 }

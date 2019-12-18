@@ -2,6 +2,7 @@ package slack
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 
 	"github.com/google/uuid"
@@ -14,9 +15,16 @@ import (
 )
 
 type Service interface {
-	SendMessage(ctx context.Context, msg *Message) error
+	HandleReactionCreated(ctx context.Context, input handleReactionCreatedInput) error
 	HandleMessage(ctx context.Context, input handleMessageInput) error
 	HandleReaction(ctx context.Context, input handleReactionInput) error
+}
+
+type handleReactionCreatedInput struct {
+	Amount      int
+	RecipientID uuid.UUID
+	SenderID    uuid.UUID
+	Type        string
 }
 
 type handleMessageInput struct {
@@ -41,22 +49,32 @@ type service struct {
 var reactionRegexp = regexp.MustCompile(":(\\w+):")
 var userRegexp = regexp.MustCompile("\\<@(.*?)\\>")
 
-func (svc *service) SendMessage(ctx context.Context, msg *Message) error {
-	usr, err := svc.userService.GetByID(ctx, msg.RecipientID)
+func (svc *service) HandleReactionCreated(ctx context.Context, input handleReactionCreatedInput) error {
+	recipient, err := svc.userService.GetByID(ctx, input.RecipientID)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
-	_, _, channelID, err := svc.slackClient.OpenIMChannel(usr.ExternalID)
+	sender, err := svc.userService.GetByID(ctx, input.SenderID)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
-	_, _, _, err = svc.slackClient.SendMessage(channelID, slack.MsgOptionText(msg.Message, false))
+	_, _, channelID, err := svc.slackClient.OpenIMChannel(recipient.ExternalID)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	msg := fmt.Sprintf("Received %dx :%s: from <@%s>! :hugging_face: :hugging_face:", input.Amount, input.Type, sender.ExternalID)
+	_, _, err = svc.slackClient.PostMessage(channelID, slack.MsgOptionText(msg, false))
 	return errors.WithStack(err)
 }
 
 func (svc *service) HandleMessage(ctx context.Context, input handleMessageInput) error {
+	if input.SenderID == "" {
+		return nil
+	}
+
 	sender, err := svc.userService.Upsert(ctx, user.UpsertInput{ExternalID: input.SenderID})
 	if err != nil {
 		return errors.WithStack(err)

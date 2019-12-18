@@ -2,6 +2,7 @@ package reaction
 
 import (
 	"context"
+	"time"
 
 	"github.com/nico-ulbricht/hugbot/pkg/event"
 
@@ -60,7 +61,26 @@ func (svc service) Create(ctx context.Context, input CreateInput) (*Reaction, er
 		input.Type,
 	)
 
-	return svc.reactionRepository.Insert(ctx, reaction)
+	reaction, err = svc.reactionRepository.Insert(ctx, reaction)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	reactionCreatedEvent := event.ReactionCreated{
+		Meta: event.Meta{
+			Created: time.Now().UTC(),
+			Type:    event.ReactionCreatedType,
+		},
+		Payload: event.ReactionCreatedPayload{
+			Amount:      reaction.Amount,
+			RecipientID: reaction.RecipientID,
+			SenderID:    reaction.SenderID,
+			Type:        reaction.Type,
+		},
+	}
+
+	err = svc.reactionPublisher.Publish(ctx, reactionCreatedEvent)
+	return reaction, errors.WithStack(err)
 }
 
 func (svc service) GetByRecipientID(ctx context.Context, recipientID uuid.UUID) ([]*Reaction, error) {
