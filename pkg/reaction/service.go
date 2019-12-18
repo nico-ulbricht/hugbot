@@ -41,6 +41,10 @@ func (svc service) Create(ctx context.Context, input CreateInput) (*Reaction, er
 		return existingReaction, nil
 	}
 
+	if input.SenderID == input.RecipientID {
+		return nil, nil
+	}
+
 	var isSupported bool
 	for _, aSupportedType := range svc.config.SupportedTypes {
 		if aSupportedType == input.Type {
