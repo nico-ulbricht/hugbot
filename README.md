@@ -5,9 +5,6 @@ It allows employees to give each other appreciation through reacting to their me
 hugs.
 
 ## 🚀 Installation
-The following instructions pose minimal pointers to install and use Hugbot in your company. Feel free to shoot me an
-email if you're stuck on them.
-
 ### Kubernetes
 In case you have access to a Kubernetes Cluster, the repository comes with a fully stable standalone
 [Helm Chart](https://helm.sh/). To install:
